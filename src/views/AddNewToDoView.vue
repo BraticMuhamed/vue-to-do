@@ -6,14 +6,19 @@
         <input
           id="to-do-input"
           type="text"
-          v-model="task"
+          v-model="v$.task.$model"
           placeholder="Add a new task"
           class="task-input"
           autocomplete="off"
         />
-        <button @click.prevent="addNewToDo">+</button>
+        <button @click.stop="addNewToDo">+</button>
         <br />
-        <span v-show="showError" class="text error">Please, add a task.</span>
+        <strong
+          v-for="error of v$.$errors"
+          :key="error.$uid"
+          class="text error"
+          >{{ error.$message }}</strong
+        >
         <span v-show="taskAdded" class="text success"
           >Task successfully added!</span
         >
@@ -24,31 +29,49 @@
 </template>
 
 <script>
+import { useVuelidate } from "@vuelidate/core";
+import { required, minLength } from "@vuelidate/validators";
+
 export default {
+  setup() {
+    return {
+      v$: useVuelidate(),
+    };
+  },
   data() {
     return {
       task: "",
-      showError: false,
       taskAdded: false,
       successMessageId: 0,
     };
   },
+  validations() {
+    return {
+      task: {
+        required,
+        minLength: minLength(3),
+        lazy: true,
+      },
+    };
+  },
   methods: {
-    addNewToDo() {
-      this.showError = false;
+    async addNewToDo() {
       clearTimeout(this.successMessageId);
 
-      if (this.task) {
+      const isFormCorrect = await this.v$.$validate();
+
+      if (isFormCorrect) {
         this.$store.commit("addToDoItem", this.task);
         this.successMessageId = this.showTaskAddedMessage();
+        this.task = "";
+        this.v$.$reset();
       } else {
         this.taskAdded = false;
-        this.showError = true;
       }
-      this.task = "";
     },
     showTaskAddedMessage() {
       this.taskAdded = true;
+
       return setTimeout(() => {
         this.taskAdded = false;
       }, 5000);
@@ -58,18 +81,6 @@ export default {
 </script>
 
 <style scoped>
-.text {
-  padding-top: 5px;
-  font-size: 12px;
-}
-.error {
-  color: red;
-}
-
-.success {
-  color: lightgreen;
-}
-
 .task-input {
   width: 500px;
   margin: 0 10px;

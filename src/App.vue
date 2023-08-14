@@ -45,4 +45,17 @@ button.delete-button {
   background-color: white;
   color: red;
 }
+
+.text {
+  padding-top: 5px;
+  font-size: 14px;
+}
+
+.error {
+  color: red;
+}
+
+.success {
+  color: lightgreen;
+}
 </style>
