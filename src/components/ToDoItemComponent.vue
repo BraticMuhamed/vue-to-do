@@ -1,6 +1,6 @@
 <template>
   <div class="to-do-item">
-    <div>
+    <div class="input-wrapper">
       <input
         type="checkbox"
         :checked="toDo.isDone"
@@ -9,17 +9,11 @@
       <span :class="{ 'text-strike': toDo.isDone }" v-show="!canEdit">{{
         toDo.task
       }}</span>
-      <input type="text" v-model="v$.task.$model" v-show="canEdit" />
-      <br />
-      <strong
-        v-for="error of v$.$errors"
-        :key="error.$uid"
-        class="text error"
-        >{{ error.$message }}</strong
-      >
-      <span v-show="taskEdited" class="text success"
-        >Task successfully edited!</span
-      >
+      <add-edit-to-do-component
+        v-show="canEdit"
+        :is-edit="true"
+        :to-do-task="task"
+      ></add-edit-to-do-component>
     </div>
     <div>
       <button @click="onEdit">{{ canEdit ? "Finish" : "Edit" }}</button>
@@ -30,14 +24,12 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import { useVuelidate } from "@vuelidate/core";
-import { required, minLength } from "@vuelidate/validators";
+
+import AddEditToDoComponent from "@/components/AddEditToDoComponent.vue";
 
 export default {
-  setup() {
-    return {
-      v$: useVuelidate(),
-    };
+  components: {
+    AddEditToDoComponent,
   },
   props: {
     toDo: {
@@ -52,33 +44,16 @@ export default {
       taskEdited: false,
     };
   },
-  validations() {
-    return {
-      task: {
-        required,
-        minLength: minLength(3),
-        lazy: true,
-      },
-    };
-  },
   methods: {
     ...mapMutations(["setToDoIsDone", "deleteToDo", "editToDo"]),
-    ...mapGetters(["getToDoDone"]),
-    async onEdit() {
+    ...mapGetters(["getToDoDone", "getToDoInput"]),
+    onEdit() {
       if (!this.canEdit) {
         this.canEdit = true;
       } else {
-        const isFormCorrect = await this.v$.$validate();
-
-        if (isFormCorrect) {
-          this.editToDo({ id: this.toDo.id, task: this.task });
-          this.task = "";
-          this.v$.$reset();
-          this.showTaskEditedMessage();
-          this.canEdit = false;
-        } else {
-          this.taskEdited = false;
-        }
+        console.log(this.getToDoInput());
+        this.editToDo({ id: this.toDo.id, task: this.getToDoInput() });
+        this.canEdit = false;
       }
     },
     showTaskEditedMessage() {
@@ -104,5 +79,9 @@ export default {
 
 .text-strike {
   text-decoration: line-through;
+}
+
+.input-wrapper {
+  display: flex;
 }
 </style>

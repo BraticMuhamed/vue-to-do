@@ -6,6 +6,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     toDoList: [],
+    toDoInput: "",
   },
   getters: {
     getToDoById: (state) => (id) => {
@@ -19,6 +20,9 @@ export default new Vuex.Store({
     },
     getToDos: (state) => {
       return state.toDoList.filter((toDo) => !toDo.isDone);
+    },
+    getToDoInput: (state) => {
+      return state.toDoInput;
     },
   },
   mutations: {
@@ -41,6 +45,10 @@ export default new Vuex.Store({
     },
     editToDo(state, { id, task }) {
       state.toDoList.find((toDo) => toDo.id === id).task = task;
+    },
+    setToDoInput(state, toDoInput) {
+      console.log(toDoInput);
+      state.toDoInput = toDoInput;
     },
   },
   actions: {},
